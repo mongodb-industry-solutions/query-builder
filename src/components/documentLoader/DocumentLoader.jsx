@@ -47,7 +47,7 @@ const DocumentUploader = () => {
   return (
     <div>
       <div className={styles.container}>
-        <h1 className={styles.heading}>Document Uploader</h1>
+        <h1 className={styles.heading}>Web Template OpenEHR Uploader</h1>
         <textarea
           rows="10"
           value={documentText}
