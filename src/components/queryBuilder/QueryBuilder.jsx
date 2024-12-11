@@ -6,6 +6,7 @@ import styles from "./QueryBuilder.module.css";
 const QueryBuilder = () => {
   const [templates, setTemplates] = useState({});
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [compositionNode, setCompositionNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [error, setError] = useState(null);
   const [inputValues, setInputValues] = useState({});
@@ -64,7 +65,14 @@ const QueryBuilder = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setSelectedTemplate(data.extractedInfo);
+        const composition = data.extractedInfo.find(
+          (node) => node.rmType === "COMPOSITION"
+        );
+        const otherNodes = data.extractedInfo.filter(
+          (node) => node.rmType !== "COMPOSITION"
+        );
+        setCompositionNode(composition);
+        setSelectedTemplate(otherNodes);
         setSelectedNode(null); // Reset selected node
         setError(null);
       } else {
@@ -115,7 +123,7 @@ const QueryBuilder = () => {
     const textToCopy = conditions.length > 0 ? conditions.join(" AND ") : "";
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopyMessage("Copied to clipboard!");
-      setTimeout(() => setCopyMessage(""), 2000);
+      setTimeout(() => setCopyMessage(""), 2000); // Clear message after 2 seconds
     });
   };
 
@@ -146,7 +154,14 @@ const QueryBuilder = () => {
           </option>
         ))}
       </select>
-      <br />
+      {compositionNode && (
+        <div className={styles.composition}>
+          <h2>Composition Details</h2>
+          <p>Name: {compositionNode.name}</p>
+          <p>Node ID: {compositionNode.nodeId}</p>
+          <p>Type: {compositionNode.rmType}</p>
+        </div>
+      )}
       {selectedTemplate && (
         <>
           <select onChange={handleNodeSelect} className={styles.select}>
@@ -157,7 +172,6 @@ const QueryBuilder = () => {
               </option>
             ))}
           </select>
-          <br />
           <br />
         </>
       )}
@@ -216,11 +230,7 @@ const QueryBuilder = () => {
         </div>
         <div className={styles.queryBox}>
           {activeTab === "AQL" && (
-            <div>
-              {conditions.length > 0
-                ? conditions.reduce((prev, curr) => [prev, " AND ", curr])
-                : ""}
-            </div>
+            <div>{conditions.length > 0 ? conditions.join(" AND ") : ""}</div>
           )}
           {activeTab === "MQL" && <div>{"AQL TO MQL"}</div>}
         </div>
