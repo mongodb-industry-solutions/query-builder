@@ -96,7 +96,7 @@ const QueryBuilder = () => {
         className={styles.button}
         disabled={loading}
       >
-        {loading ? "Loading..." : "Submit Template"}
+        {loading ? "Loading..." : "Add Template"}
       </button>
       <br />
       <br />
