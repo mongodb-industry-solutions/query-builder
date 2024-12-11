@@ -6,6 +6,7 @@ import styles from "./QueryBuilder.module.css";
 const QueryBuilder = () => {
   const [templates, setTemplates] = useState({});
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
   const [error, setError] = useState(null);
   const [inputValues, setInputValues] = useState({});
   const [files, setFiles] = useState([]);
@@ -61,6 +62,7 @@ const QueryBuilder = () => {
       if (response.ok) {
         const data = await response.json();
         setSelectedTemplate(data.extractedInfo);
+        setSelectedNode(null); // Reset selected node
         setError(null);
       } else {
         const errorData = await response.json();
@@ -69,6 +71,12 @@ const QueryBuilder = () => {
     } catch (fetchError) {
       setError("Error processing document");
     }
+  };
+
+  const handleNodeSelect = (event) => {
+    const aqlPath = event.target.value;
+    const node = selectedTemplate.find((n) => n.aqlPath === aqlPath);
+    setSelectedNode(node);
   };
 
   const handleInputChange = (nodeId, inputType, value) => {
@@ -96,7 +104,7 @@ const QueryBuilder = () => {
         className={styles.button}
         disabled={loading}
       >
-        {loading ? "Loading..." : "Add Template"}
+        {loading ? "Loading..." : "Submit Files"}
       </button>
       <br />
       <br />
@@ -109,35 +117,49 @@ const QueryBuilder = () => {
         ))}
       </select>
       <br />
-      <br />
-      {error && <p className={styles.error}>{error}</p>}
       {selectedTemplate && (
-        <div>
-          {selectedTemplate.map((node, index) => (
-            <div key={index} className={styles.node}>
-              <h2>{node.name}</h2>
-              {node.inputs &&
-                node.inputs.map((input, i) => (
-                  <div key={i} className={styles.inputGroup}>
-                    <label>{input.type}</label>
-                    <input
-                      type={input.type.toLowerCase()}
-                      value={inputValues[node.nodeId]?.[input.type] || ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          node.nodeId,
-                          input.type,
-                          e.target.value
-                        )
-                      }
-                      className={styles.input}
-                    />
-                  </div>
-                ))}
-            </div>
-          ))}
+        <>
+          <select onChange={handleNodeSelect} className={styles.select}>
+            <option value="">Select a node</option>
+            {selectedTemplate.map((node, index) => (
+              <option key={`${node.aqlPath}-${index}`} value={node.aqlPath}>
+                {node.name}
+              </option>
+            ))}
+          </select>
+          <br />
+          <br />
+        </>
+      )}
+      {selectedNode && (
+        <div className={styles.node}>
+          <h2>{selectedNode.name}</h2>
+          <p>Node ID: {selectedNode.nodeId}</p>
+          <p>AQL Path: {selectedNode.aqlPath}</p>
+          {selectedNode.inputs &&
+            selectedNode.inputs.map((input, i) => (
+              <div
+                key={`${selectedNode.aqlPath}-${i}`}
+                className={styles.inputGroup}
+              >
+                <label>{input.type}</label>
+                <input
+                  type={input.type.toLowerCase()}
+                  value={inputValues[selectedNode.nodeId]?.[input.type] || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      selectedNode.nodeId,
+                      input.type,
+                      e.target.value
+                    )
+                  }
+                  className={styles.input}
+                />
+              </div>
+            ))}
         </div>
       )}
+      {error && <p className={styles.error}>{error}</p>}
     </div>
   );
 };
