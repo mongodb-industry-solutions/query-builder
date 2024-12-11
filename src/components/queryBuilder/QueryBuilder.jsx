@@ -11,6 +11,9 @@ const QueryBuilder = () => {
   const [inputValues, setInputValues] = useState({});
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [conditions, setConditions] = useState([]);
+  const [activeTab, setActiveTab] = useState("AQL");
+  const [copyMessage, setCopyMessage] = useState("");
 
   const handleFileUpload = (event) => {
     setFiles(event.target.files);
@@ -89,6 +92,33 @@ const QueryBuilder = () => {
     }));
   };
 
+  const addCondition = () => {
+    if (selectedNode && inputValues[selectedNode.nodeId]) {
+      const inputType = selectedNode.inputs[0].type; // Assuming one input type per node
+      const value = inputValues[selectedNode.nodeId][inputType];
+      if (value) {
+        const condition = `${selectedNode.aqlPath} >= '${value}'`;
+        setConditions((prevConditions) => [...prevConditions, condition]);
+        // Clear the input value after adding the condition
+        setInputValues((prevValues) => ({
+          ...prevValues,
+          [selectedNode.nodeId]: {
+            ...prevValues[selectedNode.nodeId],
+            [inputType]: "",
+          },
+        }));
+      }
+    }
+  };
+
+  const copyToClipboard = () => {
+    const textToCopy = conditions.length > 0 ? conditions.join(" AND ") : "";
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopyMessage("Copied to clipboard!");
+      setTimeout(() => setCopyMessage(""), 2000);
+    });
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.heading}>Query Builder</h1>
@@ -157,8 +187,48 @@ const QueryBuilder = () => {
                 />
               </div>
             ))}
+          {selectedNode.inputs && selectedNode.inputs.length > 0 && (
+            <button onClick={addCondition} className={styles.button}>
+              Add Condition
+            </button>
+          )}
         </div>
       )}
+      <div className={styles.conditions}>
+        <h3>Conditions</h3>
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${
+              activeTab === "AQL" ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveTab("AQL")}
+          >
+            AQL
+          </button>
+          <button
+            className={`${styles.tab} ${
+              activeTab === "MQL" ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveTab("MQL")}
+          >
+            MQL
+          </button>
+        </div>
+        <div className={styles.queryBox}>
+          {activeTab === "AQL" && (
+            <div>
+              {conditions.length > 0
+                ? conditions.reduce((prev, curr) => [prev, " AND ", curr])
+                : ""}
+            </div>
+          )}
+          {activeTab === "MQL" && <div>{"AQL TO MQL"}</div>}
+        </div>
+        <button onClick={copyToClipboard} className={styles.button}>
+          Copy to Clipboard
+        </button>
+        {copyMessage && <p className={styles.copyMessage}>{copyMessage}</p>}
+      </div>
       {error && <p className={styles.error}>{error}</p>}
     </div>
   );

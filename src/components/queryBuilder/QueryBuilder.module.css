@@ -95,3 +95,43 @@
   outline: none;
   box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
 }
+
+.tabs {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  border-radius: 4px 4px 0 0;
+  margin-right: 2px;
+}
+
+.activeTab {
+  background-color: #fff;
+  border-bottom: none;
+}
+
+.queryBox {
+  width: 100%;
+  max-height: 200px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 0 0 4px 4px;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: monospace;
+  cursor: text;
+}
+
+.copyMessage {
+  color: green;
+  margin-top: 10px;
+  text-align: center;
+}
