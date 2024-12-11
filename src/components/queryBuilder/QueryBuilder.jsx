@@ -4,38 +4,70 @@ import { useState } from "react";
 import styles from "./QueryBuilder.module.css";
 
 const QueryBuilder = () => {
-  const [documentStructure, setDocumentStructure] = useState(null);
+  const [templates, setTemplates] = useState({});
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [error, setError] = useState(null);
   const [inputValues, setInputValues] = useState({});
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
+    setFiles(event.target.files);
+  };
+
+  const handleFileSubmit = () => {
+    setLoading(true);
+    const newTemplates = {};
+
+    Array.from(files).forEach((file) => {
       const reader = new FileReader();
-      reader.onload = async (e) => {
+      reader.onload = (e) => {
         try {
           const document = JSON.parse(e.target.result);
-          const response = await fetch("/api/parseDocument", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(document),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setDocumentStructure(data.extractedInfo);
-            setError(null);
-          } else {
-            const errorData = await response.json();
-            setError(errorData.error || "Failed to fetch document structure");
-          }
+          newTemplates[file.name] = document;
+          setTemplates((prevTemplates) => ({
+            ...prevTemplates,
+            ...newTemplates,
+          }));
+          setError(null);
         } catch (parseError) {
-          setError("Invalid JSON format");
+          setError(`Invalid JSON format in file: ${file.name}`);
+        } finally {
+          setLoading(false);
         }
       };
       reader.readAsText(file);
+    });
+  };
+
+  const handleTemplateSelect = async (event) => {
+    const templateName = event.target.value;
+    if (templateName) {
+      const document = templates[templateName];
+      await processDocument(document);
+    }
+  };
+
+  const processDocument = async (document) => {
+    try {
+      const response = await fetch("/api/parseDocument", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(document),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedTemplate(data.extractedInfo);
+        setError(null);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to fetch document structure");
+      }
+    } catch (fetchError) {
+      setError("Error processing document");
     }
   };
 
@@ -57,13 +89,31 @@ const QueryBuilder = () => {
         accept=".json"
         onChange={handleFileUpload}
         className={styles.fileInput}
+        multiple
       />
+      <button
+        onClick={handleFileSubmit}
+        className={styles.button}
+        disabled={loading}
+      >
+        {loading ? "Loading..." : "Submit Template"}
+      </button>
+      <br />
+      <br />
+      <select onChange={handleTemplateSelect} className={styles.select}>
+        <option value="">Select a template</option>
+        {Object.keys(templates).map((templateName) => (
+          <option key={templateName} value={templateName}>
+            {templateName}
+          </option>
+        ))}
+      </select>
       <br />
       <br />
       {error && <p className={styles.error}>{error}</p>}
-      {documentStructure && (
+      {selectedTemplate && (
         <div>
-          {documentStructure.map((node, index) => (
+          {selectedTemplate.map((node, index) => (
             <div key={index} className={styles.node}>
               <h2>{node.name}</h2>
               {node.inputs &&
