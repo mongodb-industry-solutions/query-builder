@@ -83,6 +83,7 @@ const DocumentUploader = () => {
                 <th className={styles.th}>Localized Name</th>
                 <th className={styles.th}>Localized Description</th>
                 <th className={styles.th}>AQL Path</th>
+                <th className={styles.th}>Inputs</th>
               </tr>
             </thead>
             <tbody>
@@ -98,6 +99,13 @@ const DocumentUploader = () => {
                   <td className={styles.td}>{info.localizedNames}</td>
                   <td className={styles.td}>{info.localizedDescriptions}</td>
                   <td className={styles.td}>{info.aqlPath}</td>
+                  <td className={styles.td}>
+                    {info.inputs
+                      ? info.inputs.map((input, i) => (
+                          <div key={i}>{input.type}</div>
+                        ))
+                      : "N/A"}
+                  </td>
                 </tr>
               ))}
             </tbody>

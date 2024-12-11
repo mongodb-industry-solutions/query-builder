@@ -20,6 +20,7 @@ export async function POST(req) {
           ? node.localizedDescriptions.en
           : null,
         aqlPath: node.aqlPath || null,
+        inputs: node.inputs || null,
       };
       return info;
     };
