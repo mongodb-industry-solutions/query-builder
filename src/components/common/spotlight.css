@@ -1,0 +1,16 @@
+.stoplight-container {
+    background-color: #111827; /* Dark background */
+    color: white;
+  }
+  
+  /* Override Stoplight's default styling */
+  .stoplight-container :global(.sl-elements) {
+    --theme-color: #3B82F6; /* Blue accent color similar to your Add buttons */
+    --sidebar-bg: #1f2937;
+    --sidebar-color: white;
+    --sidebar-active-bg: #3B82F6;
+    --sidebar-active-color: white;
+    --sidebar-hover-bg: #374151;
+    --panel-bg: #111827;
+    --panel-color: white;
+  }

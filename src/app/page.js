@@ -1,11 +1,9 @@
-import HealthcarePicker from "@/components/healthPicker/HealthPicker";
-import NameTypeForm from "@/components/nameTypeForm/NameTypeForm";
+import QueryBuilder from "@/app/QueryBuilder";
 
 export default function Home() {
   return (
-    <>
-      <HealthcarePicker></HealthcarePicker>
-      <NameTypeForm></NameTypeForm>
-    </>
+    <main>
+      <QueryBuilder />
+    </main>
   );
 }

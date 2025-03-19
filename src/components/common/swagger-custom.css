@@ -1,0 +1,76 @@
+/* swagger-custom.css */
+
+/* Root background + text color */
+.swagger-ui {
+  background-color: #f5f5f5 !important; /* A lighter grey background */
+  color: #333 !important;              /* Darker text */
+}
+
+/* Top bar, info section, version, etc. */
+.swagger-ui .topbar,
+.swagger-ui .info,
+.swagger-ui .info h1,
+.swagger-ui .info h2,
+.swagger-ui .info p,
+.swagger-ui .info .base-url,
+.swagger-ui .info .version {
+  color: #333 !important;
+}
+
+/* Tag sections (like EHR, Composition, etc.) */
+.swagger-ui .opblock-tag-section {
+  background-color: #f5f5f5 !important;
+  color: #333 !important;
+}
+
+/* Individual operation blocks (GET/POST, etc.) */
+.swagger-ui .opblock {
+  background-color: #ffffff !important; /* White or very light grey */
+  color: #333 !important;
+}
+.swagger-ui .opblock-summary-method {
+  color: #333 !important;
+}
+.swagger-ui .opblock-summary-path {
+  color: #333 !important;
+}
+.swagger-ui .opblock-summary-description,
+.swagger-ui .opblock-summary-operation-id {
+  color: #333 !important;
+}
+
+/* Parameter name, in, type, and descriptions */
+.swagger-ui .parameter__name,
+.swagger-ui .parameter__in,
+.swagger-ui .parameter__type,
+.swagger-ui .parameter__value_description {
+  color: #333 !important;
+}
+
+/* Inputs and placeholders inside parameters */
+.swagger-ui .opblock-body input[type="text"] {
+  background-color: #ffffff !important; /* White input background */
+  color: #333 !important;
+  border: 1px solid #ccc !important;
+}
+.swagger-ui .opblock-body input[type="text"]::placeholder {
+  color: #777 !important; /* Subtle placeholder text */
+}
+
+/* Response tables, status columns, etc. */
+.swagger-ui .responses-table .response-col_description__inner,
+.swagger-ui .responses-table .response-col_status {
+  color: #333 !important;
+}
+
+/* Code blocks (request/response samples) */
+.swagger-ui code,
+.swagger-ui pre {
+  background-color: #000000 !important; /* Light grey code background */
+  color: #333 !important;
+}
+
+/* Override link colors if needed */
+.swagger-ui a {
+  color: #0066cc !important; /* Darker link color */
+}

@@ -1,36 +1,25 @@
+// src/lib/mongodb.js
+
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
+if (!uri) throw new Error("MONGODB_URI is not set in environment variables.");
 
-const client = new MongoClient(uri);
-let db = null;
+let client;
+let clientPromise;
 
-export async function connectToDatabase(dbName, collectionName) {
-  if (db && client.topology && client.topology.isConnected()) {
-    return db.collection(collectionName);
-  }
+if (!global._mongoClientPromise) {
+  client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
-  try {
-    await client.connect();
-    console.log("Connected successfully to MongoDB Atlas");
-    db = client.db(dbName);
-    return db.collection(collectionName);
-  } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
-    throw error;
-  }
+  global._mongoClientPromise = client.connect();
 }
+clientPromise = global._mongoClientPromise;
 
-export async function closeDatabase() {
-  if (client && client.topology && client.topology.isConnected()) {
-    console.log("Closing MongoDB connection");
-    try {
-      await client.close();
-      console.log("MongoDB connection closed successfully");
-    } catch (error) {
-      console.error("Error closing MongoDB connection:", error);
-    }
-  } else {
-    console.log("MongoDB connection already closed or not initialized");
-  }
+export async function connectToDatabase() {
+  const client = await clientPromise;
+  const db = client.db(process.env.DB_NAME); 
+  return { client, db }; 
 }

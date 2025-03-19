@@ -1,0 +1,184 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenEHR OPT to Web Template Converter</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .container {
+      max-width: 800px;
+      margin-top: 2rem;
+    }
+    #resultContainer {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .tab-content {
+      margin-top: 1rem;
+    }
+    pre {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">OpenEHR OPT to Web Template Converter</h1>
+    
+    <ul class="nav nav-tabs" id="converterTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-content" type="button" role="tab" aria-controls="file-content" aria-selected="true">Upload File</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="content-tab" data-bs-toggle="tab" data-bs-target="#content-input" type="button" role="tab" aria-controls="content-input" aria-selected="false">Paste XML</button>
+      </li>
+    </ul>
+    
+    <div class="tab-content" id="converterTabsContent">
+      <div class="tab-pane fade show active" id="file-content" role="tabpanel" aria-labelledby="file-tab">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Upload OPT File</h5>
+            <form id="fileUploadForm" enctype="multipart/form-data">
+              <div class="mb-3">
+                <label for="optFile" class="form-label">Select an OpenEHR OPT XML file</label>
+                <input class="form-control" type="file" id="optFile" name="optFile" accept=".xml,.opt">
+              </div>
+              <button type="submit" class="btn btn-primary">Convert</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-pane fade" id="content-input" role="tabpanel" aria-labelledby="content-tab">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Paste OPT XML Content</h5>
+            <form id="contentForm">
+              <div class="mb-3">
+                <label for="optContent" class="form-label">OpenEHR OPT XML Content</label>
+                <textarea class="form-control" id="optContent" name="optContent" rows="10" placeholder="Paste the XML content here"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Convert</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="resultSection" class="mt-4 d-none">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Conversion Result</h5>
+          <button id="downloadBtn" class="btn btn-sm btn-success">Download JSON</button>
+        </div>
+        <div class="card-body">
+          <div id="resultContainer">
+            <pre id="resultJson"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileUploadForm = document.getElementById('fileUploadForm');
+      const contentForm = document.getElementById('contentForm');
+      const resultSection = document.getElementById('resultSection');
+      const resultJson = document.getElementById('resultJson');
+      const downloadBtn = document.getElementById('downloadBtn');
+      
+      let conversionResult = null;
+
+      fileUploadForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(fileUploadForm);
+        const fileInput = document.getElementById('optFile');
+        
+        if (!fileInput.files.length) {
+          alert('Please select a file to upload');
+          return;
+        }
+        
+        try {
+          const response = await fetch('/api/convert', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+          }
+          
+          conversionResult = await response.json();
+          displayResult(conversionResult);
+        } catch (error) {
+          console.error('Error during conversion:', error);
+          alert(`Conversion failed: ${error.message}`);
+        }
+      });
+      
+      contentForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const optContent = document.getElementById('optContent').value;
+        
+        if (!optContent.trim()) {
+          alert('Please enter OPT XML content');
+          return;
+        }
+        
+        try {
+          const response = await fetch('/api/convert-content', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ optContent })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+          }
+          
+          conversionResult = await response.json();
+          displayResult(conversionResult);
+        } catch (error) {
+          console.error('Error during conversion:', error);
+          alert(`Conversion failed: ${error.message}`);
+        }
+      });
+      
+      downloadBtn.addEventListener('click', function() {
+        if (!conversionResult) return;
+        
+        const fileName = `${conversionResult.templateId || 'template'}.json`;
+        const jsonStr = JSON.stringify(conversionResult, null, 2);
+        
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+      
+      function displayResult(result) {
+        resultJson.textContent = JSON.stringify(result, null, 2);
+        resultSection.classList.remove('d-none');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,14 +1,14 @@
-import { GeistSans } from "geist/font/sans";
+import './globals.css'
 
 export const metadata = {
-  title: "Home",
-  description: "",
-};
+  title: 'Query Builder',
+  description: 'Query Builder Application',
+}
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={GeistSans.className}>
+    <html lang="en">
       <body>{children}</body>
     </html>
-  );
+  )
 }
